@@ -51,6 +51,11 @@ compareToMaybe (Just x) y = x == y
 srcOk :: Board -> Player -> Pos -> Bool
 srcOk b pl po = compareToMaybe (b po >>= stackCtrler) pl
 
+adjacent :: Board -> Pos -> Pos -> Bool
+adjacent b s d = not (b s == Nothing) &&
+                 abs (fst s - fst d) == 1 &&
+                 abs (snd s - snd d) == 1
+
 -- Combine two stacks if the combination is legal (bottom stack -> top stack -> result)
 stackStack :: Stack -> Stack -> Maybe Stack
 stackStack Top t               = Just t 
@@ -76,30 +81,33 @@ dropStack n s = go (stackHeight s - n) $ Just s
         go n (Just (Flat p ss)) = Just . (Flat p) =<< go (n-1) (Just ss)
         go _ _                  = Nothing
 
+updateBoard :: Board -> [(Pos, Maybe Stack)] -> Board
+updateBoard b []         = b
+updateBoard b ((p,ms):xs) = let
+  upd x = if (x == p) then ms else b x in
+  updateBoard upd xs
+
 -- Add a new stack to the board (if the add is legal)
 addNewStack :: Maybe Board -> Player -> Stone -> Pos -> Maybe Board
 addNewStack mb pl s po = do
   b <- mb
   if compareToMaybe (b po) Top then
-    Just (\p -> if (p == po) then Just (newStack pl s) else b p)
+    Just $ updateBoard b [(po, Just $ newStack pl s)]
   else
     Nothing
 
 -- Move a single substack to another position
--- TODO: check position adjacency 
 simpleMove :: Maybe Board -> Player -> Pos -> Int -> Pos -> Maybe Board
 simpleMove mb pl src n dst = do
-  b <- mb
+  b    <- mb
   bsrc <- b src
   bdst <- b dst
-  mov <- takeStack n bsrc
+  mov  <- takeStack n bsrc
   let
-    sok = srcOk b pl src
+    valid = srcOk b pl src && adjacent b src dst
     bsrc' = dropStack n bsrc
     bdst' = stackStack bdst mov in
-    if not sok || bsrc' == Nothing || bdst' == Nothing then
+    if not valid || bsrc' == Nothing || bdst' == Nothing then
       Nothing
     else
-      Just nb where nb src = bsrc'
-                    nb dst = bdst'
-                    nb po  = b po
+      Just $ updateBoard b [(src, bsrc'), (dst, bdst')]
