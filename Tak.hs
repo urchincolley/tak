@@ -2,16 +2,6 @@ module Tak where
 
 import TakTypes
 
-headMaybe :: [a] -> Maybe a
-headMaybe [] = Nothing
-headMaybe xs = Just $ head xs
-
-find :: (a -> Bool) -> [a] -> Maybe a
-find p xs = headMaybe $ take 1 $ filter p xs
-
-allTrue :: [a -> b -> Bool] -> a -> b -> Bool
-allTrue fs x y = foldr (&&) True $ map ($ y) $ map ($ x) fs
-
 -- rows and cols are indexed by 1 because people think that way (?)
 posOk :: Int -> Pos -> Bool
 posOk n p = fst p > 0 && fst p <= n && snd p > 0 && snd p <= n
@@ -51,8 +41,10 @@ compareToMaybe (Just x) y = x == y
 srcOk :: Board -> Player -> Pos -> Bool
 srcOk b pl po = compareToMaybe (b po >>= stackCtrler) pl
 
+-- Determine if the positions s and d are cardinally adjacent and on the board
 adjacent :: Board -> Pos -> Pos -> Bool
 adjacent b s d = not (b s == Nothing) &&
+                 not (b d == Nothing) &&
                  abs (fst s - fst d) == 1 &&
                  abs (snd s - snd d) == 1
 
