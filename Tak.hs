@@ -59,6 +59,7 @@ stackStack _ _                 = Nothing
 takeStack :: Int -> Stack -> Maybe Stack
 takeStack n s = go (stackHeight s - n) $ Just s
   where go :: Int -> Maybe Stack -> Maybe Stack
+        go 0 (Just Top)        = Nothing
         go 0 s                 = s
         go n (Just (Flat _ s)) = go (n - 1) $ Just s
         go _ _                 = Nothing
@@ -67,11 +68,12 @@ takeStack n s = go (stackHeight s - n) $ Just s
 dropStack :: Int -> Stack -> Maybe Stack
 dropStack n s = go (stackHeight s - n) $ Just s
   where go :: Int -> Maybe Stack -> Maybe Stack
-        go 0 s                  = Just Top
-        go 1 (Just (Cap _))     = Just Top
-        go 1 (Just (Stand _))   = Just Top
-        go n (Just (Flat p ss)) = Just . (Flat p) =<< go (n-1) (Just ss)
-        go _ _                  = Nothing
+        go 0 s                     = Just Top
+        go 1 s@(Just (Cap _))      = s
+        go 1 s@(Just (Stand _))    = s
+        go 1 s@(Just (Flat _ Top)) = s
+        go n (Just (Flat p ss))    = Just . (Flat p) =<< go (n-1) (Just ss)
+        go _ _                     = Nothing
 
 updateBoard :: Board -> [(Pos, Maybe Stack)] -> Board
 updateBoard b []         = b
