@@ -17,7 +17,7 @@ data Stone
     deriving (Eq, Ord, Show)
 
 type Row    = Int
-type Column = Char
+type Column = Int
 type Pos = (Row, Column)
 
 type Board = Pos -> Maybe Stack

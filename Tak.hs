@@ -12,14 +12,9 @@ find p xs = headMaybe $ take 1 $ filter p xs
 allTrue :: [a -> b -> Bool] -> a -> b -> Bool
 allTrue fs x y = foldr (&&) True $ map ($ y) $ map ($ x) fs
 
-cOk :: Int -> Pos -> Bool
-cOk n p = find (== snd p) (take n ['a'..'z']) /= Nothing
-
-rOk :: Int -> Pos -> Bool
-rOk n p = fst p > 0 && fst p < n
-
+-- rows and cols are indexed by 1 because people think that way (?)
 posOk :: Int -> Pos -> Bool
-posOk = allTrue [rOk, cOk]
+posOk n p = fst p > 0 && fst p <= n && snd p > 0 && snd p <= n
 
 emptyBoard :: Int -> Board
 emptyBoard n p = if posOk n p then Just Top else Nothing
